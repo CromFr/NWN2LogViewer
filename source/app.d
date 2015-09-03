@@ -1,16 +1,21 @@
 import vibe.d;
+import logparser;
 
 shared static this()
 {
+	auto router = new URLRouter;
+
 	auto settings = new HTTPServerSettings;
 	settings.port = 8080;
 	settings.bindAddresses = ["::1", "127.0.0.1"];
-	listenHTTP(settings, &hello);
-	router.registerRestInterface(new MyAPIImplementation);
+
+	router.get("/", serveStaticFile("index.html"));
+	router.registerRestInterface(new LogAPI);
+
+	listenHTTP(settings, router);
 
 	logInfo("Please open http://127.0.0.1:8080/ in your browser.");
 }
-
 
 
 
@@ -21,13 +26,17 @@ interface LogIface {
 }
 
 class LogAPI : LogIface {
-	immutable classList;
+	LogParser[string] classList;
 
 	this(){
+		import AuroraServerNWScript;
 		classList = [
 			"AuroraServerNWScript.BenchLog":
-				new AuroraServerNWScript.BenchLog(`C:\nwnx4\AuroraServerNWScript.log`),
+				new AuroraServerNWScript.BenchLog(`C:\Program Files (x86)\Neverwinter Nights 2\nwnx4\AuroraServerNWScript.log`),
 		];
+	}
+	string getTest(){
+		return "hello";
 	}
 
 	Json getData(string moduleName, string className){
