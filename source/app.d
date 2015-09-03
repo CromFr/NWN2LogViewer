@@ -1,3 +1,4 @@
+import std.algorithm;
 import vibe.d;
 import logparser;
 
@@ -12,6 +13,18 @@ shared static this()
 	router.get("/", serveStaticFile("index.html"));
 	router.registerRestInterface(new LogAPI);
 
+	import AuroraServerNWScript;
+	LogParser[string] classList = [
+		"/AuroraServerNWScript/BenchLog":
+			new AuroraServerNWScript.BenchLog(`C:\Program Files (x86)\Neverwinter Nights 2\nwnx4\AuroraServerNWScript.log`),
+	];
+
+	foreach(k, c ; classList){
+		router.get(k, delegate(HTTPServerRequest req, HTTPServerResponse res){
+			res.writeJsonBody(c.getData);
+		});
+	}
+
 	listenHTTP(settings, router);
 
 	logInfo("Please open http://127.0.0.1:8080/ in your browser.");
@@ -23,6 +36,7 @@ interface LogIface {
 
 	Json getData(string moduleName, string className);
 	Json getColumns(string moduleName, string className);
+	string getTest();
 }
 
 class LogAPI : LogIface {
@@ -30,10 +44,7 @@ class LogAPI : LogIface {
 
 	this(){
 		import AuroraServerNWScript;
-		classList = [
-			"AuroraServerNWScript.BenchLog":
-				new AuroraServerNWScript.BenchLog(`C:\Program Files (x86)\Neverwinter Nights 2\nwnx4\AuroraServerNWScript.log`),
-		];
+		
 	}
 	string getTest(){
 		return "hello";
