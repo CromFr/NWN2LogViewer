@@ -1,0 +1,14 @@
+.dub
+docs.json
+__dummy.html
+*.o
+*.obj
+
+bower_components/
+dub.selections.json
+nwn2logviewer
+
+
+# Win
+*.dll
+*.exe
