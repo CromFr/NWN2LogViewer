@@ -3,52 +3,20 @@
 <head>
 	<meta charset="utf-8">
 	<title>Log viewer</title>
-	<link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css">
+	<link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css">
 
-	<script src="bower_components/angular/angular.js"></script>
+	<script src="lib/angular/angular.js"></script>
 
 	<script type="text/javascript">
+
 		var app = angular.module('logApp', []);
-		app.controller('LogCtrl', function($scope){
-			$scope.columns = [
-				{
-					'name': 'Name',
-					'code': 'name'
-				},
-				{
-					'name': 'Avg run time',
-					'code': 'avgRunTime'
-				},
-				{
-					'name': 'Calls',
-					'code': 'calls'
-				},
-				{
-					'name': 'Total run time',
-					'code': 'totalRunTime'
-				},
-			];
+		app.controller('LogCtrl', function($scope, $http){
+			$scope.data = $http.get('/AuroraServerNWScript/BenchLog/data').success(function(data) {
+				$scope.columns = data.columns;
+				$scope.orderColumn = $scope.columns[0].code;
 
-			$scope.logs = [
-				{	'name': 'yolo.nss',
-					'totalRunTime': 1759,
-					'calls': 42,
-					'avgRunTime': 0.12
-				},
-				{	'name': 'azerty.nss',
-					'totalRunTime': 1759,
-					'calls': 12,
-					'avgRunTime': 13.37
-				},
-				{	'name': 'qsdqdqsd.nss',
-					'totalRunTime': 89754,
-					'calls': 152,
-					'avgRunTime': 4564.2
-				}
-			];
-
-			$scope.orderColumn = 'name';
-
+				$scope.logs = data.data;
+			});
 		});
 	</script>
 </head>
@@ -78,8 +46,7 @@
 	</table>
 
 
-	<script src="bower_components/jquery/jquery.min.js"></script>
-	<script src="bower_components/showdown/showdown.min.js"></script>
-	<script src="bower_components/bootstrap/js/bootstrap.min.js"></script>
+	<script src="lib/jquery/dist/jquery.min.js"></script>
+	<script src="lib/bootstrap/dist/js/bootstrap.min.js"></script>
 </body>
 </html>

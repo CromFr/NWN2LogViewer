@@ -17,7 +17,7 @@ shared static this()
 	settings.port = 8080;
 	settings.bindAddresses = ["::1", "127.0.0.1"];
 
-	router.get("/", serveStaticFile("index.html"));
+	router.get("*", serveStaticFiles("./public/"));
 
 	auto config = [
 		"AuroraServerNWScript":[
@@ -27,9 +27,8 @@ shared static this()
 		]
 	].serializeToJson;
 
-	DataProvider[string] classList = mixin("[
-		"~ListAllProviders()~"
-	]");
+	//Providers are available at: /ModuleName/ClassName
+	DataProvider[string] classList = mixin("["~ListAllProviders()~"]");
 
 	foreach(path, c ; classList){
 		c.route(router, path);
