@@ -7,24 +7,25 @@ import std.conv;
 import std.algorithm;
 
 import logparser;
-class BenchLog : LogParser{
+
+class BenchLog : DataProvider{
 
 	private string file;
-	this(string _file){
-		file = _file;
+	this(Json config){
+		file = config.AuroraServerNWScript.BenchLog.file.to!string;
 		assert(file.exists, file~" doesn't exists");
 		assert(file.isFile, file~" is not a file");
 
-		columns = Json(q"[
-			{ 'name': 'Name',           'code': 'name'         },
-			{ 'name': 'Type',           'code': 'type'         },
-			{ 'name': 'Avg run time',   'code': 'avgRunTime'   },
-			{ 'name': 'Calls',          'code': 'calls'        },
-			{ 'name': 'Total run time', 'code': 'totalRunTime' }
-		]");
+		columns = [
+			Column("Name","name"),
+			Column("Type","type"),
+			Column("Avg run time","avgRunTime"),
+			Column("Calls","calls"),
+			Column("Total run time","totalRunTime"),
+		];
 	}
 
-	override Json getData() {
+	override Json getData(Json settings=null) {
 		enum rgxScript = ctRegex!r"\[.+?\] (.+?) - \((.+?)\) \(([0-9]+) calls, [0-9]+ script situations, [0-9]+ bytes VA space usage, ([0-9]+)ms runtime\)\.";
 
 		struct Entry{
@@ -46,7 +47,11 @@ class BenchLog : LogParser{
 				data[m[1]] = Entry(m[1],m[2],calls,rtime,rtime/(calls*1.0));
 			});
 
-		return data.values.serializeToJson;
+
+		return Json([
+			"columns": columns.serializeToJson,
+			"data": data.values.serializeToJson
+		]);
 	}
 
 

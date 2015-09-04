@@ -1,6 +1,13 @@
-import std.algorithm;
-import vibe.d;
+import std.stdio;
 import logparser;
+
+import vibe.d;
+
+//All modules to import, where DataProviders are written
+enum ProviderModuleList {
+	AuroraServerNWScript
+}
+
 
 shared static this()
 {
@@ -11,56 +18,64 @@ shared static this()
 	settings.bindAddresses = ["::1", "127.0.0.1"];
 
 	router.get("/", serveStaticFile("index.html"));
-	router.registerRestInterface(new LogAPI);
 
-	import AuroraServerNWScript;
-	LogParser[string] classList = [
-		"/AuroraServerNWScript/BenchLog":
-			new AuroraServerNWScript.BenchLog(`C:\Program Files (x86)\Neverwinter Nights 2\nwnx4\AuroraServerNWScript.log`),
-	];
+	auto config = [
+		"AuroraServerNWScript":[
+			"BenchLog":[
+				"file": "AuroraServerNWScript.log"
+			]
+		]
+	].serializeToJson;
 
-	foreach(k, c ; classList){
-		router.get(k, delegate(HTTPServerRequest req, HTTPServerResponse res){
-			res.writeJsonBody(c.getData);
-		});
+	DataProvider[string] classList = mixin("[
+		"~ListAllProviders()~"
+	]");
+
+	foreach(path, c ; classList){
+		c.route(router, path);
 	}
 
 	listenHTTP(settings, router);
 
-	logInfo("Please open http://127.0.0.1:8080/ in your browser.");
+	writeln("http://127.0.0.1:8080/");
 }
 
 
 
-interface LogIface {
 
-	Json getData(string moduleName, string className);
-	Json getColumns(string moduleName, string className);
-	string getTest();
-}
 
-class LogAPI : LogIface {
-	LogParser[string] classList;
+//Import all modules from ProviderModuleList
+mixin({
+	import std.traits;
+	import std.conv;
+	string ret;
+	foreach(mod ; EnumMembers!ProviderModuleList){
+		ret~="import "~mod.to!string~";";
+	}
+	return ret;
+}());
 
-	this(){
-		import AuroraServerNWScript;
+string ListAllProviders(){
+	import std.traits;
+	import std.conv;
+
+	string ret;
+
+	foreach(mod ; EnumMembers!ProviderModuleList){
+		foreach(member ; __traits(allMembers, mixin(mod.to!string))){
+
+			immutable string memberFullName = mod.to!string~"."~member.to!string;
+
+			static if(
+				mixin("is("~memberFullName~" == class)")
+				&& isImplicitlyConvertible!(mixin(memberFullName), DataProvider)){
 		
-	}
-	string getTest(){
-		return "hello";
-	}
+				pragma(msg, "- Registered: "~memberFullName);
 
-	Json getData(string moduleName, string className){
-		string thisClass = moduleName~"."~className;
+				ret ~= "\"/"~(mod.to!string)~"/"~(member.to!string)~"\": new "~memberFullName~"(config),";
 
-		return classList[thisClass].getData();
+			}
+		}
 	}
-	Json getColumns(string moduleName, string className){
-		string thisClass = moduleName~"."~className;
-
-		return classList[thisClass].getColumns();
-	}
+	return ret;
 }
-
-
-
