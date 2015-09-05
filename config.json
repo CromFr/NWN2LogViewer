@@ -1,0 +1,14 @@
+{
+	"server":{
+		"port": 8080,
+		"bindAddresses": ["::1", "127.0.0.1"],
+		"yolo": ""
+	},
+
+	//Data provider list
+	"providers":{
+		"AuroraServerNWScript":{
+			"file": "AuroraServerNWScript.log"
+		}
+	}
+}

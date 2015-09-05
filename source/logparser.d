@@ -10,7 +10,10 @@ interface DataProviderIface {
 }
 
 
-class DataProvider : DataProviderIface{
+abstract class DataProvider : DataProviderIface{
+	//Must implement this(Json config) in child class
+	//  The passed config is the config.cfg file from the /providers/YourModule
+
 
 	void route(URLRouter router, in string pathPrefix){
 		router.registerRestInterface(this, pathPrefix);

@@ -8,11 +8,20 @@ import std.algorithm;
 
 import logparser;
 
+
+//Config:
+//	file: Path to AuroraServerNWScript log file
+//
+
 class BenchLog : DataProvider{
 
 	private string file;
 	this(Json config){
-		file = config.AuroraServerNWScript.BenchLog.file.to!string;
+		import std.exception;
+		assertNotThrown(config.file.to!string, __MODULE__~" need a file path");
+		file = config.file.to!string;
+		
+
 		assert(file.exists, file~" doesn't exists");
 		assert(file.isFile, file~" is not a file");
 
@@ -32,7 +41,7 @@ class BenchLog : DataProvider{
 			string name;
 			string type;
 			int calls;
-			int runtime;
+			int totalRunTime;
 
 			float avgRunTime;
 		}

@@ -1,4 +1,8 @@
 import std.stdio;
+import std.file : readText;
+import std.regex;
+import std.algorithm;
+import std.traits;
 import logparser;
 
 import vibe.d;
@@ -9,26 +13,69 @@ enum ProviderModuleList {
 }
 
 
-shared static this()
+int main(string[] args)
 {
-	auto router = new URLRouter;
+
+	if (!finalizeCommandLineOptions())
+		return 0;
+
+	auto config = "config.json"
+		.readText
+		.replaceAll(ctRegex!r"//.*", " ")
+		.parseJsonString;
+
 
 	auto settings = new HTTPServerSettings;
-	settings.port = 8080;
-	settings.bindAddresses = ["::1", "127.0.0.1"];
 
-	router.get("*", serveStaticFiles("./public/"));
+	//Read settings from config.json
+	foreach(key, value ; config["server"].get!(Json[string])){
 
-	auto config = [
-		"AuroraServerNWScript":[
-			"BenchLog":[
-				"file": "AuroraServerNWScript.log"
-			]
-		]
-	].serializeToJson;
+		//writeln(key,":",value);
+
+		foreach(member ; __traits(allMembers, HTTPServerSettings)){
+			static if(!isCallable!(mixin("HTTPServerSettings."~member)) && member!="Monitor"){
+
+				if(key == member){
+					static if(isSomeString!(mixin("typeof(HTTPServerSettings."~member~")"))
+						   || __traits(isArithmetic, mixin("HTTPServerSettings."~member))
+						){
+						//pragma(msg, "=====X "~member);
+						try{
+							auto buff = mixin("value.to!(OriginalType!(typeof(HTTPServerSettings."~member~")))");
+							mixin("settings."~member~" = cast(typeof(HTTPServerSettings."~member~"))buff;");
+							writeln("-- server."~member~"=",mixin("settings."~member));
+						}
+						catch(JSONException){}
+					}
+					else static if(mixin("is(typeof(HTTPServerSettings."~member~") == Duration)")){
+						//pragma(msg, "=====D "~member);
+						try{
+							mixin("settings."~member~" = dur!\"seconds\"(value.to!uint);");
+							writeln("-- server."~member~"=",mixin("settings."~member));
+						}
+						catch(JSONException){}
+					}
+					else static if(mixin("is(typeof(HTTPServerSettings."~member~") == string[])") ){
+						//pragma(msg, "====[] "~member);
+						try{
+							mixin("settings."~member~" = 
+								(value[])
+								.map!((a){return a.to!string;})
+								.array;");
+							writeln("-- server."~member~"=",mixin("settings."~member));
+						}
+						catch(JSONException){}
+					}
+				}
+			}
+		}
+	}
 
 	//Providers are available at: /ModuleName/ClassName
 	DataProvider[string] classList = mixin("["~ListAllProviders()~"]");
+
+	auto router = new URLRouter;
+	router.get("*", serveStaticFiles("./public/"));
 
 	foreach(path, c ; classList){
 		c.route(router, path);
@@ -36,7 +83,9 @@ shared static this()
 
 	listenHTTP(settings, router);
 
-	writeln("http://127.0.0.1:8080/");
+	lowerPrivileges();
+	writeln("==> http://127.0.0.1:"~settings.port.to!string~"/");
+	return runEventLoop();
 }
 
 
@@ -55,8 +104,8 @@ mixin({
 }());
 
 string ListAllProviders(){
-	import std.traits;
 	import std.conv;
+	import std.file;
 
 	string ret;
 
@@ -68,10 +117,9 @@ string ListAllProviders(){
 			static if(
 				mixin("is("~memberFullName~" == class)")
 				&& isImplicitlyConvertible!(mixin(memberFullName), DataProvider)){
-		
-				pragma(msg, "- Registered: "~memberFullName);
 
-				ret ~= "\"/"~(mod.to!string)~"/"~(member.to!string)~"\": new "~memberFullName~"(config),";
+				pragma(msg, "- Registered: "~memberFullName);
+				ret ~= "\"/"~(mod.to!string)~"/"~(member.to!string)~"\": new "~memberFullName~"(config.providers."~mod.to!string~"),";
 
 			}
 		}
