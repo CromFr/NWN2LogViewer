@@ -76,6 +76,20 @@ int main(string[] args)
 
 	auto router = new URLRouter;
 	router.get("*", serveStaticFiles("./public/"));
+	router.get("/providers", (HTTPServerRequest req, HTTPServerResponse res){
+
+		Json list = Json.emptyObject;
+		classList
+			.keys
+			.each!((a){
+				immutable b = a[1..$].split("/");
+				if(b[0] !in list)
+					list[b[0]] = Json.emptyArray;
+				list[b[0]].appendArrayElement(Json(b[1]));
+			});
+
+		res.writeJsonBody(list);
+	});
 
 	foreach(path, c ; classList){
 		c.route(router, path);
