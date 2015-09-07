@@ -41,22 +41,28 @@
 
 		});
 
-		app.filter('display', function() {
+		app.filter('logFilter', function() {
 			return function(lines) {
 				if(lines){
 					return lines.filter(function(line, index, array) {
 						var display = true;
-						for((colCode,colValue) in line){
-							var type = $scope.columns[colCode].type;
-							if(type=="int" || type=="float"){
+						// console.log(line);
+						for (var i=0 ; i<Object.keys(line).length ; i++){
+							console.log(line);
+							var type = "text";//columns[i].code.type;
+							if(type=="int" || type=="float" || type=="date"){
 								var from = $('search_from_'+colCode).val();
 								var to = $('search_to_'+colCode).val();
 								display &= (from? from<=colValue : true) && (to? colValue<=to : true);
 							}
+							else if(type=="text"){
+								display &= colValue.toLowerCase().search($('search_'+colCode).val().toLowerCase());
+							}
 
-
-							if(display==false)return false;
-						}
+							if(!display)
+								return false;
+						};
+						return true;
 					});
 				}
 				return lines;
@@ -122,14 +128,13 @@
 							</span>
 						</div>
 						<script type="text/javascript">
-							$(function () {
-								$('#datePickerFrom_{{column.code}}').datetimepicker({
-									format: 'YYYY-MM-DD HH:MM:SS'
-								});
-								$('#datePickerTo_{{column.code}}').datetimepicker({
-									format: 'YYYY-MM-DD HH:MM:SS'
-								});
-							});
+							// var scope = angular.element($('div[ng-controller="LogCtrl"]')).scope();
+							// $('#datePickerFrom_'+scope.column.code).datetimepicker({
+							// 	format: 'YYYY-MM-DD HH:MM:SS'
+							// });
+							// $('#datePickerTo_'+scope.column.code).datetimepicker({
+							// 	format: 'YYYY-MM-DD HH:MM:SS'
+							// });
 						</script>
 					</td>
 				</tr>
@@ -151,7 +156,7 @@
 				</th>
 			</tr></thead>
 
-			<tr ng-repeat="entry in logs | display | orderBy:orderColumn">
+			<tr ng-repeat="entry in logs | logFilter | orderBy:orderColumn">
 				<td ng-repeat="column in columns">
 					<div ng-if="column.type=='float'">
 						{{entry[column.code] | number:2}}

@@ -77,7 +77,7 @@ class Errors : DataProvider{
 
 		columns = [
 			Column("Date","date", ColumnType.DATE),
-			Column("Erreur","error", ColumnType.TEXT),
+			Column("Error","error", ColumnType.TEXT),
 			Column("Task","task", ColumnType.TEXT),
 			Column("Script","script", ColumnType.TEXT),
 		];
