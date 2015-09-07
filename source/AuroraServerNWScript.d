@@ -25,11 +25,11 @@ class Benchmark : DataProvider{
 		assert(file.isFile, file~" is not a file");
 
 		columns = [
-			Column("Name","name"),
-			Column("Type","type"),
-			Column("Avg run time","avgRunTime"),
-			Column("Calls","calls"),
-			Column("Total run time","totalRunTime"),
+			Column("Name","name", ColumnType.TEXT),
+			Column("Type","type", ColumnType.TEXT),
+			Column("Avg run time (ms)","avgRunTime", ColumnType.FLOAT),
+			Column("Calls","calls", ColumnType.INT),
+			Column("Total run time (ms)","totalRunTime", ColumnType.INT),
 		];
 	}
 
@@ -76,10 +76,10 @@ class Errors : DataProvider{
 		assert(file.isFile, file~" is not a file");
 
 		columns = [
-			Column("Date","date"),
-			Column("Erreur","error"),
-			Column("Task","task"),
-			Column("Script","script"),
+			Column("Date","date", ColumnType.DATE),
+			Column("Erreur","error", ColumnType.TEXT),
+			Column("Task","task", ColumnType.TEXT),
+			Column("Script","script", ColumnType.TEXT),
 		];
 	}
 

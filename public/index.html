@@ -3,12 +3,11 @@
 <head>
 	<meta charset="utf-8">
 	<title>Log viewer</title>
-	<link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css">
-	<link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css" />
-	<link rel="stylesheet" href="lib/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css" />
+	<link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css"/>
+	<link rel="stylesheet" href="lib/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css"/>
 
-	<script src="lib/angular/angular.js"></script>
-	<script src="lib/jquery/dist/jquery.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.5/angular.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
 	<script src="lib/bootstrap/dist/js/bootstrap.min.js"></script>
 	<script type="text/javascript" src="lib/moment/min/moment.min.js"></script>
 	<script type="text/javascript" src="lib/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
@@ -22,33 +21,63 @@
 		}
 
 		var app = angular.module('mainApp', []);
+
+
 		app.controller('NavbarCtrl', function($scope, $http){
-			$http.get('/providers').success(function(data) {
+			$http.get('providers').success(function(data) {
 				$scope.navbarMenus = data;
 			});
 		});
 
 		app.controller('LogCtrl', function($scope, $http){
-			$http.get('/'+getParameterByName("logs").replace('.','/')+'/data').success(function(data) {
-				$scope.columns = data.columns;
-				$scope.orderColumn = $scope.columns[0].code;
+			if(getParameterByName("logs")){
+				$http.get(getParameterByName("logs").replace('.','/')+'/data').success(function(data) {
+					$scope.columns = data.columns;
+					$scope.orderColumn = $scope.columns[0].code;
 
-				$scope.logs = data.data;
-			});
+					$scope.logs = data.data;
+				});
+			}
+
 		});
+
+		app.filter('display', function() {
+			return function(lines) {
+				if(lines){
+					return lines.filter(function(line, index, array) {
+						var display = true;
+						for((colCode,colValue) in line){
+							var type = $scope.columns[colCode].type;
+							if(type=="int" || type=="float"){
+								var from = $('search_from_'+colCode).val();
+								var to = $('search_to_'+colCode).val();
+								display &= (from? from<=colValue : true) && (to? colValue<=to : true);
+							}
+
+
+							if(display==false)return false;
+						}
+					});
+				}
+				return lines;
+			};
+		});
+
+		
+
 	</script>
 </head>
 <!-- ######################################## -->
 <body>
 
-	<nav class="navbar navbar-inverse navbar-static-top">
+	<nav ng-controller="NavbarCtrl" class="navbar navbar-inverse navbar-static-top">
 		<div class="container-fluid">
 
 			<div class="navbar-header">
 				<a class="navbar-brand" href="https://github.com/CromFr/NWNLogViewer">NWNLogViewer</a>
 			</div>
 
-			<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1" ng-controller="NavbarCtrl">
+			<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
 				<ul class="nav navbar-nav">
 					<li class="dropdown" ng-repeat="(header, menus) in navbarMenus" ng-class="active">
 						<a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
@@ -66,38 +95,46 @@
 	</nav>
 
 	<div ng-controller="LogCtrl">
-		<form class="form-inline">
-			<div class="form-group">
-				<label for="searchScript">Search</label>
-				<input class="form-control" id="searchScript" placeholder="Name" ng-model="searchName">
+		<div class="container">
+			<table class="table table-bordered">
+				<tr class="form-inline form-group" ng-repeat="column in columns">
+					<td><label class="control-label">{{column.name}}</label></td>
 
-
-				<label for="datePickerFrom">From</label>
-				<div id="datePickerFrom" class="input-group date">
-					<input type="text" class="form-control"/>
-					<span class="input-group-addon">
-						<span class="glyphicon glyphicon-calendar"></span>
-					</span>
-				</div>
-				<label for="datePickerTo">To</label>
-				<div id="datePickerTo" class="input-group date">
-					<input type="text" class="form-control"/>
-					<span class="input-group-addon">
-						<span class="glyphicon glyphicon-calendar"></span>
-					</span>
-				</div>
-					<script type="text/javascript">
-						$(function () {
-							$('#datePickerFrom').datetimepicker({
-								format: 'YYYY-MM-DD HH:MM:SS'
+					<td ng-if="column.type=='text'">
+						<input id="search_{{column.code}}" type="text" class="form-control" placeholder="Containing...">
+					</td>
+					<td ng-if="column.type=='int' || column.type=='float'">
+						<input id="search_from_{{column.code}}" type="number" class="form-control" placeholder="From">
+						<input id="search_to_{{column.code}}" type="number" class="form-control" placeholder="To">
+					</td>
+					<td ng-if="column.type=='date'">
+						<div id="datePickerFrom_{{column.code}}" class="input-group date">
+							<input id="search_from_{{column.code}}" type="text" class="form-control" placeholder="From"/>
+							<span class="input-group-addon">
+								<span class="glyphicon glyphicon-calendar"></span>
+							</span>
+						</div>
+						<label for="datePickerTo">To</label>
+						<div id="datePickerTo_{{column.code}}" class="input-group date">
+							<input id="search_to_{{column.code}}" type="text" class="form-control" placeholder="To"/>
+							<span class="input-group-addon">
+								<span class="glyphicon glyphicon-calendar"></span>
+							</span>
+						</div>
+						<script type="text/javascript">
+							$(function () {
+								$('#datePickerFrom_{{column.code}}').datetimepicker({
+									format: 'YYYY-MM-DD HH:MM:SS'
+								});
+								$('#datePickerTo_{{column.code}}').datetimepicker({
+									format: 'YYYY-MM-DD HH:MM:SS'
+								});
 							});
-							$('#datePickerTo').datetimepicker({
-								format: 'YYYY-MM-DD HH:MM:SS'
-							});
-						});
-					</script>
-			</div>
-		</form>
+						</script>
+					</td>
+				</tr>
+			</table>
+		</div>
 
 		<table class="table table-striped table-condensed">
 			<thead><tr>
@@ -114,8 +151,15 @@
 				</th>
 			</tr></thead>
 
-			<tr ng-repeat="entry in logs | filter:searchName | orderBy:orderColumn">
-				<td ng-repeat="column in columns">{{entry[column.code]}}</td>
+			<tr ng-repeat="entry in logs | display | orderBy:orderColumn">
+				<td ng-repeat="column in columns">
+					<div ng-if="column.type=='float'">
+						{{entry[column.code] | number:2}}
+					</div>
+					<div ng-if="column.type!='float'">
+						{{entry[column.code]}}
+					</div>
+				</td>
 			</tr>
 
 		</table>

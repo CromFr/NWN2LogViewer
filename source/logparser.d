@@ -19,9 +19,13 @@ abstract class DataProvider : DataProviderIface{
 		router.registerRestInterface(this, pathPrefix);
 	}
 
+	enum ColumnType{
+		TEXT="text", INT="int", FLOAT="float", DATE="date"
+	}
 	struct Column{
 		string name;
 		string code;
+		ColumnType type;
 	}
 	protected Column[] columns;
 
