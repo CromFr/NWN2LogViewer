@@ -82,7 +82,7 @@ class Errors : DataProvider{
 	}
 
 	override Json getData(Json settings=null) {
-		enum rgxScript = ctRegex!r"\[(.+?)\] (.*?(Exception|Failed|ERROR).*?)";
+		enum rgxScript = ctRegex!r"\[(.+?)\] (.*?(Exception|Failed|ERROR).*)";
 
 
 		struct Entry{
