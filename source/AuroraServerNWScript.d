@@ -78,15 +78,20 @@ class Errors : DataProvider{
 		columns = [
 			Column("Date","date"),
 			Column("Erreur","error"),
+			Column("Task","task"),
+			Column("Script","script"),
 		];
 	}
 
 	override Json getData(Json settings=null) {
-		enum rgxScript = ctRegex!r"\[(.+?)\] (.*?(Exception|Failed|ERROR).*)";
+		//NWScriptVM::AnalyzeScript( ot_userdefined ): Exception analyzing script: 'trivial infinite loop detected'.
+		enum rgxScript = ctRegex!r"\[(.+?)\] (.+?::.+?)\(\s*([^\s]*)\s*\): (.*?(Exception|Failed|ERROR).*)";
 
 
 		struct Entry{
 			string date;
+			string task;
+			string script;
 			string error;
 		}
 
@@ -95,7 +100,7 @@ class Errors : DataProvider{
 		file.readText
 			.matchAll(rgxScript)
 			.each!((m){
-				data ~= Entry(m[1],m[2]);
+				data ~= Entry(m[1],m[2],m[3],m[4]);
 			});
 
 

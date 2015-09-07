@@ -4,8 +4,14 @@
 	<meta charset="utf-8">
 	<title>Log viewer</title>
 	<link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css">
+	<link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css" />
+	<link rel="stylesheet" href="lib/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css" />
 
 	<script src="lib/angular/angular.js"></script>
+	<script src="lib/jquery/dist/jquery.min.js"></script>
+	<script src="lib/bootstrap/dist/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="lib/moment/min/moment.min.js"></script>
+	<script type="text/javascript" src="lib/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
 
 	<script type="text/javascript">
 		function getParameterByName(name) {
@@ -60,10 +66,38 @@
 	</nav>
 
 	<div ng-controller="LogCtrl">
-		<div class="form-group">
-			<label for="searchScript">Search</label>
-			<input class="form-control" id="searchScript" placeholder="Name" ng-model="searchName">
-		</div>
+		<form class="form-inline">
+			<div class="form-group">
+				<label for="searchScript">Search</label>
+				<input class="form-control" id="searchScript" placeholder="Name" ng-model="searchName">
+
+
+				<label for="datePickerFrom">From</label>
+				<div id="datePickerFrom" class="input-group date">
+					<input type="text" class="form-control"/>
+					<span class="input-group-addon">
+						<span class="glyphicon glyphicon-calendar"></span>
+					</span>
+				</div>
+				<label for="datePickerTo">To</label>
+				<div id="datePickerTo" class="input-group date">
+					<input type="text" class="form-control"/>
+					<span class="input-group-addon">
+						<span class="glyphicon glyphicon-calendar"></span>
+					</span>
+				</div>
+					<script type="text/javascript">
+						$(function () {
+							$('#datePickerFrom').datetimepicker({
+								format: 'YYYY-MM-DD HH:MM:SS'
+							});
+							$('#datePickerTo').datetimepicker({
+								format: 'YYYY-MM-DD HH:MM:SS'
+							});
+						});
+					</script>
+			</div>
+		</form>
 
 		<table class="table table-striped table-condensed">
 			<thead><tr>
@@ -72,11 +106,11 @@
 					class="btn-default" style="cursor:pointer">
 
 					{{column.name}}
-				    <span
-				    	class="glyphicon {{($parent.orderColumn==column.code)? 'glyphicon-sort-by-attributes' : 'glyphicon-sort-by-attributes-alt'}}"
-				    	style="opacity:{{$parent.orderColumn==column.code||$parent.orderColumn==('-'+column.code)? '1.0' : '0.0'}}"
-				    	aria-hidden="true">
-				    </span>
+					<span
+						class="glyphicon {{($parent.orderColumn==column.code)? 'glyphicon-sort-by-attributes' : 'glyphicon-sort-by-attributes-alt'}}"
+						style="opacity:{{$parent.orderColumn==column.code||$parent.orderColumn==('-'+column.code)? '1.0' : '0.0'}}"
+						aria-hidden="true">
+					</span>
 				</th>
 			</tr></thead>
 
@@ -88,7 +122,5 @@
 	</div>
 
 
-	<script src="lib/jquery/dist/jquery.min.js"></script>
-	<script src="lib/bootstrap/dist/js/bootstrap.min.js"></script>
 </body>
 </html>
