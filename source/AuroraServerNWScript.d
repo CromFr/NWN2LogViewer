@@ -5,6 +5,8 @@ import std.regex;
 import std.string;
 import std.conv;
 import std.algorithm;
+import std.encoding;
+import std.utf;
 
 import logparser;
 
@@ -47,7 +49,15 @@ class Benchmark : DataProvider{
 
 		Entry[string] data;
 
-		file.readText
+
+		string dataString;
+		try{
+			dataString = file.readText;
+		}
+		catch(UTFException e){
+			transcode(cast(Windows1252String)(file.read), dataString);
+		}
+		dataString
 			.matchAll(rgxScript)
 			.each!((m){
 				auto calls = m[4].to!uint;
@@ -93,7 +103,14 @@ class Errors : DataProvider{
 
 		Entry[] data;
 
-		file.readText
+		string dataString;
+		try{
+			dataString = file.readText;
+		}
+		catch(UTFException e){
+			transcode(cast(Windows1252String)(file.read), dataString);
+		}
+		dataString
 			.matchAll(rgxScript)
 			.each!((m){
 				data ~= Entry(m[1],m[2],m[3],m[4]);
