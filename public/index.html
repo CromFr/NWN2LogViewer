@@ -31,46 +31,49 @@
 
 		app.controller('LogCtrl', function($scope, $http){
 			if(getParameterByName("logs")){
-				$http.get(getParameterByName("logs").replace('.','/')+'/data').success(function(data) {
+				$http.get(getParameterByName("logs").replace('.','/')+'/data').success(function(data){
 					$scope.columns = data.columns;
 					$scope.orderColumn = $scope.columns[0].code;
 
 					$scope.logs = data.data;
+
+					$scope.update = function(){
+					};
 				});
 			}
 
 		});
 
 		app.filter('logFilter', function() {
+			var $scope = angular.element($('[ng-controller="LogCtrl"]')).scope();
 			return function(lines) {
-				// if(lines){
-				// 	return lines.filter(function(line, index, array) {
-				// 		var display = true;
+				if(lines){
 
-				// 		var keys = Object.keys(line);
-				// 		var length = keys.length;
-				// 		console.log(length);
-				// 		for (var i=0 ; i<length ; i++){
-				// 			console.log(line);
-				// 			console.log(i);
-				// 			var type = "text";//columns[i].code.type;
-				// 			var colCode = line[keys[i]].code;
-				// 			var colValue = line[keys[i]].value;
-				// 			if(type=="int" || type=="float" || type=="date"){
-				// 				var from = $('search_from_'+colCode).val();
-				// 				var to = $('search_to_'+colCode).val();
-				// 				display &= (from? from<=colValue : true) && (to? colValue<=to : true);
-				// 			}
-				// 			else if(type=="text"){
-				// 				display &= colValue.toLowerCase().search($('search_'+colCode).val().toLowerCase());
-				// 			}
+					return lines.filter(function(line, index, array){
 
-				// 			if(!display)
-				// 				return false;
-				// 		};
-				// 		return true;
-				// 	});
-				// }
+						for (var key in $scope.columns){
+							var colType = $scope.columns[key].type;
+							var colCode = $scope.columns[key].code;
+							var cellValue = line[key];
+
+							if(colType=="int" || colType=="float" || colType=="date"){
+								var from = $('#search_from_'+colCode).val();
+								var to = $('#search_to_'+colCode).val();
+
+								if(from && cellValue<from)return false;
+								if(to && cellValue>to)return false;
+							}
+							else if(colType=="text"){
+								var searchFor = $('#search_'+colCode).val();
+								if(searchFor){
+									if(cellValue.toLowerCase().search(searchFor.toLowerCase())==-1)
+										return false;
+								}
+							}
+						}
+						return true;
+					});
+				}
 				return lines;
 			};
 		});
@@ -113,22 +116,22 @@
 					<td><label class="control-label">{{column.name}}</label></td>
 
 					<td ng-if="column.type=='text'">
-						<input id="search_{{column.code}}" type="text" class="form-control" placeholder="Containing...">
+						<input id="search_{{column.code}}" type="text" class="form-control" placeholder="Containing..." ng-blur="update()"/>
 					</td>
 					<td ng-if="column.type=='int' || column.type=='float'">
-						<input id="search_from_{{column.code}}" type="number" class="form-control" placeholder="From">
-						<input id="search_to_{{column.code}}" type="number" class="form-control" placeholder="To">
+						<input id="search_from_{{column.code}}" type="number" class="form-control" placeholder="From" ng-blur="update()"/>
+						<input id="search_to_{{column.code}}" type="number" class="form-control" placeholder="To" ng-blur="update()"/>
 					</td>
 					<td ng-if="column.type=='date'">
 						<div id="datePickerFrom_{{column.code}}" class="input-group date">
-							<input id="search_from_{{column.code}}" type="text" class="form-control" placeholder="From"/>
+							<input id="search_from_{{column.code}}" type="text" class="form-control" placeholder="From" ng-blur="update()"/>
 							<span class="input-group-addon">
 								<span class="glyphicon glyphicon-calendar"></span>
 							</span>
 						</div>
 						<label for="datePickerTo">To</label>
 						<div id="datePickerTo_{{column.code}}" class="input-group date">
-							<input id="search_to_{{column.code}}" type="text" class="form-control" placeholder="To"/>
+							<input id="search_to_{{column.code}}" type="text" class="form-control" placeholder="To" ng-blur="update()"/>
 							<span class="input-group-addon">
 								<span class="glyphicon glyphicon-calendar"></span>
 							</span>
@@ -162,7 +165,7 @@
 				</th>
 			</tr></thead>
 
-			<tr ng-repeat="entry in logs | logFilter | orderBy:orderColumn">
+			<tr ng-repeat="entry in logs | logFilter:filterChanged | orderBy:orderColumn">
 				<td ng-repeat="(index,column) in columns">
 					<div ng-if="column.type=='float'">
 						{{entry[index] | number:2}}
