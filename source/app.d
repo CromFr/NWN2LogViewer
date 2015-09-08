@@ -30,8 +30,6 @@ int main(string[] args)
 	//Read settings from config.json
 	foreach(key, value ; config["server"].get!(Json[string])){
 
-		//writeln(key,":",value);
-
 		foreach(member ; __traits(allMembers, HTTPServerSettings)){
 			static if(!isCallable!(mixin("HTTPServerSettings."~member)) && member!="Monitor"){
 

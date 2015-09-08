@@ -43,28 +43,34 @@
 
 		app.filter('logFilter', function() {
 			return function(lines) {
-				if(lines){
-					return lines.filter(function(line, index, array) {
-						var display = true;
-						// console.log(line);
-						for (var i=0 ; i<Object.keys(line).length ; i++){
-							console.log(line);
-							var type = "text";//columns[i].code.type;
-							if(type=="int" || type=="float" || type=="date"){
-								var from = $('search_from_'+colCode).val();
-								var to = $('search_to_'+colCode).val();
-								display &= (from? from<=colValue : true) && (to? colValue<=to : true);
-							}
-							else if(type=="text"){
-								display &= colValue.toLowerCase().search($('search_'+colCode).val().toLowerCase());
-							}
+				// if(lines){
+				// 	return lines.filter(function(line, index, array) {
+				// 		var display = true;
 
-							if(!display)
-								return false;
-						};
-						return true;
-					});
-				}
+				// 		var keys = Object.keys(line);
+				// 		var length = keys.length;
+				// 		console.log(length);
+				// 		for (var i=0 ; i<length ; i++){
+				// 			console.log(line);
+				// 			console.log(i);
+				// 			var type = "text";//columns[i].code.type;
+				// 			var colCode = line[keys[i]].code;
+				// 			var colValue = line[keys[i]].value;
+				// 			if(type=="int" || type=="float" || type=="date"){
+				// 				var from = $('search_from_'+colCode).val();
+				// 				var to = $('search_to_'+colCode).val();
+				// 				display &= (from? from<=colValue : true) && (to? colValue<=to : true);
+				// 			}
+				// 			else if(type=="text"){
+				// 				display &= colValue.toLowerCase().search($('search_'+colCode).val().toLowerCase());
+				// 			}
+
+				// 			if(!display)
+				// 				return false;
+				// 		};
+				// 		return true;
+				// 	});
+				// }
 				return lines;
 			};
 		});
@@ -157,12 +163,12 @@
 			</tr></thead>
 
 			<tr ng-repeat="entry in logs | logFilter | orderBy:orderColumn">
-				<td ng-repeat="column in columns">
+				<td ng-repeat="(index,column) in columns">
 					<div ng-if="column.type=='float'">
-						{{entry[column.code] | number:2}}
+						{{entry[index] | number:2}}
 					</div>
 					<div ng-if="column.type!='float'">
-						{{entry[column.code]}}
+						{{entry[index]}}
 					</div>
 				</td>
 			</tr>

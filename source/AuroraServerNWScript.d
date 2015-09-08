@@ -29,7 +29,7 @@ class Benchmark : DataProvider{
 			Column("Type","type", ColumnType.TEXT),
 			Column("Avg run time (ms)","avgRunTime", ColumnType.FLOAT),
 			Column("Calls","calls", ColumnType.INT),
-			Column("Total run time (ms)","totalRunTime", ColumnType.INT),
+			Column("Total run time (ms)","totalRunTime", ColumnType.FLOAT),
 		];
 	}
 
@@ -55,11 +55,7 @@ class Benchmark : DataProvider{
 				data[m[2]] = Entry(m[2],m[3],calls,rtime,rtime/(calls*1.0));
 			});
 
-
-		return Json([
-			"columns": columns.serializeToJson,
-			"data": data.values.serializeToJson
-		]);
+		return serializeDataToJson(data.values);
 	}
 }
 
@@ -104,9 +100,6 @@ class Errors : DataProvider{
 			});
 
 
-		return Json([
-			"columns": columns.serializeToJson,
-			"data": data.serializeToJson
-		]);
+		return serializeDataToJson(data);
 	}
 }
