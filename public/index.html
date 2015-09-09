@@ -2,15 +2,16 @@
 <html lang="en" ng-app="mainApp">
 <head>
 	<meta charset="utf-8">
-	<title>Log viewer</title>
+	<title>NWN Log viewer</title>
 	<link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css"/>
-	<link rel="stylesheet" href="lib/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css"/>
+	<link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.css" />
 
 	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.5/angular.min.js"></script>
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+	<script src="//cdn.jsdelivr.net/jquery/1/jquery.min.js"></script>
 	<script src="lib/bootstrap/dist/js/bootstrap.min.js"></script>
-	<script type="text/javascript" src="lib/moment/min/moment.min.js"></script>
-	<script type="text/javascript" src="lib/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+
+	<script type="text/javascript" src="//cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+	<script type="text/javascript" src="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.js"></script>
 
 	<script type="text/javascript">
 		function getParameterByName(name) {
@@ -39,6 +40,25 @@
 
 					$scope.update = function(){
 					};
+
+					$scope.columnFilter = {};
+
+
+					$scope.watch("columns", function(){
+						console.log("Update");
+						 $('input[name="daterange"]').daterangepicker({
+							"showDropdowns": true,
+							"showWeekNumbers": true,
+							"timePicker": true,
+							"timePicker24Hour": true,
+							"timePickerSeconds": true,
+							"startDate": "09/03/2015",
+							"endDate": "09/09/2015",
+							//"parentEl": "div"
+						}, function(start, end, label) {
+							console.log("New date range selected: ' + start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD') + ' (predefined range: ' + label + ')");
+						});
+					});
 				});
 			}
 
@@ -62,6 +82,14 @@
 
 								if(from && cellValue<from)return false;
 								if(to && cellValue>to)return false;
+							}
+							else if(colType=="bool"){
+								// var checkVal = $('#search_'+colCode).val();
+								// if(to && cellValue>to)return false;
+								console.log($scope.columnFilter);
+
+								if($scope.columnFilter[colCode] && cellValue != $scope.columnFilter[colCode])
+									return false;
 							}
 							else if(colType=="text"){
 								var searchFor = $('#search_'+colCode).val();
@@ -122,29 +150,43 @@
 						<input id="search_from_{{column.code}}" type="number" class="form-control" placeholder="From" ng-blur="update()"/>
 						<input id="search_to_{{column.code}}" type="number" class="form-control" placeholder="To" ng-blur="update()"/>
 					</td>
+					<td ng-if="column.type=='bool'">
+						<div class="btn-group" data-toggle="buttons">
+							<label class="btn btn-default active">
+								<input type="radio" autocomplete="off" ng-model="columnFilter[column.code]" value="" checked>Any
+							</label>
+							<label class="btn btn-success">
+								<input type="radio" autocomplete="off" ng-model="columnFilter[column.code]" value="1">Yes
+							</label>
+							<label class="btn btn-danger">
+								<input type="radio" autocomplete="off" ng-model="columnFilter[column.code]" value="0">No
+							</label>
+						</div>
+					</td>
 					<td ng-if="column.type=='date'">
-						<div id="datePickerFrom_{{column.code}}" class="input-group date">
+
+						
+						<div class="input-group">
+							<input id="datePicker_{{column.code}}" name="daterange" class="form-control"
+								type="text" value="01/01/2015 1:30 PM - 01/01/2015 2:00 PM" />
+							<span class="input-group-addon">
+								<span class="glyphicon glyphicon-calendar"></span>
+							</span>
+						</div>
+						<!-- <div  class="input-group daterangepicker">
 							<input id="search_from_{{column.code}}" type="text" class="form-control" placeholder="From" ng-blur="update()"/>
 							<span class="input-group-addon">
 								<span class="glyphicon glyphicon-calendar"></span>
 							</span>
 						</div>
 						<label for="datePickerTo">To</label>
-						<div id="datePickerTo_{{column.code}}" class="input-group date">
+						<div id="datePickerTo_{{column.code}}" class="input-group daterangepicker">
 							<input id="search_to_{{column.code}}" type="text" class="form-control" placeholder="To" ng-blur="update()"/>
 							<span class="input-group-addon">
 								<span class="glyphicon glyphicon-calendar"></span>
 							</span>
-						</div>
-						<script type="text/javascript">
-							// var scope = angular.element($('div[ng-controller="LogCtrl"]')).scope();
-							// $('#datePickerFrom_'+scope.column.code).datetimepicker({
-							// 	format: 'YYYY-MM-DD HH:MM:SS'
-							// });
-							// $('#datePickerTo_'+scope.column.code).datetimepicker({
-							// 	format: 'YYYY-MM-DD HH:MM:SS'
-							// });
-						</script>
+						</div> -->
+						
 					</td>
 				</tr>
 			</table>
@@ -165,12 +207,15 @@
 				</th>
 			</tr></thead>
 
-			<tr ng-repeat="entry in logs | logFilter:filterChanged | orderBy:orderColumn">
+			<tr ng-repeat="entry in logs | logFilter | orderBy:orderColumn">
 				<td ng-repeat="(index,column) in columns">
 					<div ng-if="column.type=='float'">
 						{{entry[index] | number:2}}
 					</div>
-					<div ng-if="column.type!='float'">
+					<div ng-if="column.type=='bool'">
+						<span class="glyphicon {{entry[index]? 'glyphicon-ok' : 'glyphicon-remove'}}"></span>
+					</div>
+					<div ng-if="column.type!='float' && column.type!='bool'">
 						{{entry[index]}}
 					</div>
 				</td>

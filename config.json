@@ -9,6 +9,9 @@
 	"providers":{
 		"AuroraServerNWScript":{
 			"file": "AuroraServerNWScript.log"
+		},
+		"NWServer":{
+			"file": "nwserverLog1.txt"
 		}
 	}
 }

@@ -8,7 +8,7 @@ import std.algorithm;
 import std.encoding;
 import std.utf;
 
-import logparser;
+import dataprovider;
 
 
 //Config:
@@ -91,11 +91,11 @@ class Errors : DataProvider{
 
 	override Json getData(Json settings=null) {
 		//NWScriptVM::AnalyzeScript( ot_userdefined ): Exception analyzing script: 'trivial infinite loop detected'.
-		enum rgxScript = ctRegex!r"\[(.+?)\] (.+?::.+?)\(\s*([^\s]*)\s*\): (.*?(Exception|Failed|ERROR).*)";
+		enum rgxScript = ctRegex!(r"\[(.+?)\] (.+?::.+?)\(\s*([^\s]*)\s*\): (.*?(exception|fail|error|bug).*)","i");
 
 
 		struct Entry{
-			string date;
+			DateTime date;
 			string task;
 			string script;
 			string error;
@@ -113,7 +113,11 @@ class Errors : DataProvider{
 		dataString
 			.matchAll(rgxScript)
 			.each!((m){
-				data ~= Entry(m[1],m[2],m[3],m[4]);
+				data ~= Entry(
+					m[1].parseDateTime!"YYYY:MM:DD hh:mm:ss",
+					m[2],
+					m[3],
+					m[4]);
 			});
 
 

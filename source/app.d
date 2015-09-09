@@ -3,17 +3,18 @@ import std.file : readText;
 import std.regex;
 import std.algorithm;
 import std.traits;
-import logparser;
+import dataprovider;
 
 import vibe.d;
 
 //All modules to import, where DataProviders are written
 enum ProviderModuleList {
-	AuroraServerNWScript
+	AuroraServerNWScript,
+	NWServer
 }
 
 
-int main(string[] args)
+int main(string[])
 {
 
 	if (!finalizeCommandLineOptions())
@@ -70,11 +71,11 @@ int main(string[] args)
 	}
 
 	//Providers are available at: /ModuleName/ClassName
-	DataProvider[string] classList = mixin("["~ListAllProviders()~"]");
+	DataProvider[string] classList = mixin("["~listAllProviders()~"]");
 
 	auto router = new URLRouter;
 	router.get("*", serveStaticFiles("./public/"));
-	router.get("/providers", (HTTPServerRequest req, HTTPServerResponse res){
+	router.get("/providers", delegate(HTTPServerRequest, HTTPServerResponse res){
 
 		Json list = Json.emptyObject;
 		classList
@@ -106,8 +107,8 @@ int main(string[] args)
 
 //Import all modules from ProviderModuleList
 mixin({
-	import std.traits;
-	import std.conv;
+	import std.traits : EnumMembers;
+	import std.conv : to;
 	string ret;
 	foreach(mod ; EnumMembers!ProviderModuleList){
 		ret~="import "~mod.to!string~";";
@@ -115,9 +116,8 @@ mixin({
 	return ret;
 }());
 
-string ListAllProviders(){
-	import std.conv;
-	import std.file;
+private string listAllProviders(){
+	import std.conv : to;
 
 	string ret;
 
