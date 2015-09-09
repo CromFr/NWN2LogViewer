@@ -41,11 +41,7 @@
 					$scope.update = function(){
 					};
 
-					$scope.columnFilter = {};
-
-
-					$scope.watch("columns", function(){
-						console.log("Update");
+					setTimeout(function(){
 						 $('input[name="daterange"]').daterangepicker({
 							"showDropdowns": true,
 							"showWeekNumbers": true,
@@ -54,11 +50,10 @@
 							"timePickerSeconds": true,
 							"startDate": "09/03/2015",
 							"endDate": "09/09/2015",
-							//"parentEl": "div"
 						}, function(start, end, label) {
-							console.log("New date range selected: ' + start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD') + ' (predefined range: ' + label + ')");
+							console.log('New date range selected: ' + start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD') + ' (predefined range: ' + label + ')');
 						});
-					});
+					}, 0);
 				});
 			}
 
@@ -84,12 +79,10 @@
 								if(to && cellValue>to)return false;
 							}
 							else if(colType=="bool"){
-								// var checkVal = $('#search_'+colCode).val();
-								// if(to && cellValue>to)return false;
-								console.log($scope.columnFilter);
+								var radioValue = $('input[name="search_'+colCode+'"]:checked').val();
 
-								if($scope.columnFilter[colCode] && cellValue != $scope.columnFilter[colCode])
-									return false;
+								if(radioValue!="" && cellValue!=radioValue)
+								 	return false;
 							}
 							else if(colType=="text"){
 								var searchFor = $('#search_'+colCode).val();
@@ -153,19 +146,17 @@
 					<td ng-if="column.type=='bool'">
 						<div class="btn-group" data-toggle="buttons">
 							<label class="btn btn-default active">
-								<input type="radio" autocomplete="off" ng-model="columnFilter[column.code]" value="" checked>Any
+								<input name="search_{{column.code}}" type="radio" autocomplete="off" value="" ng-click="update()" checked>Any
 							</label>
 							<label class="btn btn-success">
-								<input type="radio" autocomplete="off" ng-model="columnFilter[column.code]" value="1">Yes
+								<input name="search_{{column.code}}" type="radio" autocomplete="off" value="1" ng-click="update()">Yes
 							</label>
 							<label class="btn btn-danger">
-								<input type="radio" autocomplete="off" ng-model="columnFilter[column.code]" value="0">No
+								<input name="search_{{column.code}}" type="radio" autocomplete="off" value="0" ng-click="update()">No
 							</label>
 						</div>
 					</td>
 					<td ng-if="column.type=='date'">
-
-						
 						<div class="input-group">
 							<input id="datePicker_{{column.code}}" name="daterange" class="form-control"
 								type="text" value="01/01/2015 1:30 PM - 01/01/2015 2:00 PM" />
@@ -173,20 +164,6 @@
 								<span class="glyphicon glyphicon-calendar"></span>
 							</span>
 						</div>
-						<!-- <div  class="input-group daterangepicker">
-							<input id="search_from_{{column.code}}" type="text" class="form-control" placeholder="From" ng-blur="update()"/>
-							<span class="input-group-addon">
-								<span class="glyphicon glyphicon-calendar"></span>
-							</span>
-						</div>
-						<label for="datePickerTo">To</label>
-						<div id="datePickerTo_{{column.code}}" class="input-group daterangepicker">
-							<input id="search_to_{{column.code}}" type="text" class="form-control" placeholder="To" ng-blur="update()"/>
-							<span class="input-group-addon">
-								<span class="glyphicon glyphicon-calendar"></span>
-							</span>
-						</div> -->
-						
 					</td>
 				</tr>
 			</table>
