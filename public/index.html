@@ -34,7 +34,7 @@
 			if(getParameterByName("logs")){
 				$http.get(getParameterByName("logs").replace('.','/')+'/data').success(function(data){
 					$scope.columns = data.columns;
-					$scope.orderIndex = 0;
+					$scope.orderIndex = '+0';
 					$scope.logs = data.data;
 
 					$scope.filters = [];
@@ -65,6 +65,7 @@
 								from: start.format('YYYY-MM-DDTHH:mm:ss'),
 								to: end.format('YYYY-MM-DDTHH:mm:ss')
 							};
+							$scope.$apply();
 						});
 					}, 0);
 				});
@@ -76,9 +77,7 @@
 			var $scope = angular.element($('[ng-controller="LogController"]')).scope();
 			return function(lines) {
 				if(lines){
-					// console.log($scope.filters);
-					// console.log("YOLOOO",$scope.yolo);
-					console.log("Filters:",$scope.filters);
+					// console.log("Filters:",$scope.filters);
 
 					return lines.filter(function(line, lineIndex, array){
 
@@ -155,7 +154,7 @@
 						<input type="number" class="form-control" placeholder="To" ng-model="filters[index].to"/>
 					</td>
 					<td ng-if="column.type=='bool'">
-						<div class="btn-group" data-toggle="buttons">
+						<div class="btn-group">
 							<label class="btn btn-default active">
 								<input name="search_{{column.code}}" type="radio" ng-model="filters[index]" value="" checked>Any
 							</label>
