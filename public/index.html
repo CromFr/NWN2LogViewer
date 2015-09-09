@@ -24,34 +24,47 @@
 		var app = angular.module('mainApp', []);
 
 
-		app.controller('NavbarCtrl', function($scope, $http){
+		app.controller('NavbarController', function($scope, $http){
 			$http.get('providers').success(function(data) {
 				$scope.navbarMenus = data;
 			});
 		});
 
-		app.controller('LogCtrl', function($scope, $http){
+		app.controller('LogController', function($scope, $http){
 			if(getParameterByName("logs")){
 				$http.get(getParameterByName("logs").replace('.','/')+'/data').success(function(data){
 					$scope.columns = data.columns;
-					$scope.orderColumn = $scope.columns[0].code;
-
+					$scope.orderIndex = 0;
 					$scope.logs = data.data;
 
-					$scope.update = function(){
-					};
+					$scope.filters = [];
 
 					setTimeout(function(){
 						 $('input[name="daterange"]').daterangepicker({
-							"showDropdowns": true,
-							"showWeekNumbers": true,
-							"timePicker": true,
-							"timePicker24Hour": true,
-							"timePickerSeconds": true,
-							"startDate": "09/03/2015",
-							"endDate": "09/09/2015",
+						 	locale: {
+						      format: 'YYYY-MM-DDTHH:mm:ss',
+						      firstDay: 1
+						    },
+							showDropdowns: true,
+							showWeekNumbers: false,
+							timePicker: true,
+							timePicker24Hour: true,
+							timePickerSeconds: true,
+							ranges: {
+								'Today': [moment().startOf('day'), moment()],
+								'Yesterday': [moment().subtract(1, 'days').startOf('day'), moment().startOf('day')],
+								'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+								'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+								'This Month': [moment().startOf('month'), moment().endOf('month')],
+								'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+							}
 						}, function(start, end, label) {
-							console.log('New date range selected: ' + start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD') + ' (predefined range: ' + label + ')');
+							// console.log('New date range selected: ' + start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD') + ' (predefined range: ' + label + ')');
+							var index = this.element[0].attributes['data-index'].value;
+							$scope.filters[index] = {
+								from: start.format('YYYY-MM-DDTHH:mm:ss'),
+								to: end.format('YYYY-MM-DDTHH:mm:ss')
+							};
 						});
 					}, 0);
 				});
@@ -60,34 +73,32 @@
 		});
 
 		app.filter('logFilter', function() {
-			var $scope = angular.element($('[ng-controller="LogCtrl"]')).scope();
+			var $scope = angular.element($('[ng-controller="LogController"]')).scope();
 			return function(lines) {
 				if(lines){
+					// console.log($scope.filters);
+					// console.log("YOLOOO",$scope.yolo);
+					console.log("Filters:",$scope.filters);
 
-					return lines.filter(function(line, index, array){
+					return lines.filter(function(line, lineIndex, array){
 
-						for (var key in $scope.columns){
-							var colType = $scope.columns[key].type;
-							var colCode = $scope.columns[key].code;
-							var cellValue = line[key];
+						for (var colIndex in $scope.columns){
+							var colType = $scope.columns[colIndex].type;
+							var cellValue = line[colIndex];
 
 							if(colType=="int" || colType=="float" || colType=="date"){
-								var from = $('#search_from_'+colCode).val();
-								var to = $('#search_to_'+colCode).val();
-
-								if(from && cellValue<from)return false;
-								if(to && cellValue>to)return false;
+								if($scope.filters[colIndex]){
+									if($scope.filters[colIndex].from && cellValue<$scope.filters[colIndex].from) return false;
+									if($scope.filters[colIndex].to && cellValue>$scope.filters[colIndex].to)     return false;
+								}
 							}
 							else if(colType=="bool"){
-								var radioValue = $('input[name="search_'+colCode+'"]:checked').val();
-
-								if(radioValue!="" && cellValue!=radioValue)
-								 	return false;
+								if($scope.filters[colIndex] && cellValue!=$scope.filters[colIndex])
+									return false;
 							}
 							else if(colType=="text"){
-								var searchFor = $('#search_'+colCode).val();
-								if(searchFor){
-									if(cellValue.toLowerCase().search(searchFor.toLowerCase())==-1)
+								if($scope.filters[colIndex]){
+									if(cellValue.toLowerCase().search($scope.filters[colIndex].toLowerCase())==-1)
 										return false;
 								}
 							}
@@ -106,7 +117,7 @@
 <!-- ######################################## -->
 <body>
 
-	<nav ng-controller="NavbarCtrl" class="navbar navbar-inverse navbar-static-top">
+	<nav ng-controller="NavbarController" class="navbar navbar-inverse navbar-static-top">
 		<div class="container-fluid">
 
 			<div class="navbar-header">
@@ -130,36 +141,35 @@
 		</div>
 	</nav>
 
-	<div ng-controller="LogCtrl">
+	<div ng-controller="LogController">
 		<div class="container">
 			<table class="table table-bordered">
-				<tr class="form-inline form-group" ng-repeat="column in columns">
+				<tr class="form-inline form-group" ng-repeat="(index,column) in columns">
 					<td><label class="control-label">{{column.name}}</label></td>
 
 					<td ng-if="column.type=='text'">
-						<input id="search_{{column.code}}" type="text" class="form-control" placeholder="Containing..." ng-blur="update()"/>
+						<input type="text" class="form-control" placeholder="Containing..." ng-model="filters[index]"/>
 					</td>
 					<td ng-if="column.type=='int' || column.type=='float'">
-						<input id="search_from_{{column.code}}" type="number" class="form-control" placeholder="From" ng-blur="update()"/>
-						<input id="search_to_{{column.code}}" type="number" class="form-control" placeholder="To" ng-blur="update()"/>
+						<input type="number" class="form-control" placeholder="From" ng-model="filters[index].from"/>
+						<input type="number" class="form-control" placeholder="To" ng-model="filters[index].to"/>
 					</td>
 					<td ng-if="column.type=='bool'">
 						<div class="btn-group" data-toggle="buttons">
 							<label class="btn btn-default active">
-								<input name="search_{{column.code}}" type="radio" autocomplete="off" value="" ng-click="update()" checked>Any
+								<input name="search_{{column.code}}" type="radio" ng-model="filters[index]" value="" checked>Any
 							</label>
 							<label class="btn btn-success">
-								<input name="search_{{column.code}}" type="radio" autocomplete="off" value="1" ng-click="update()">Yes
+								<input name="search_{{column.code}}" type="radio" ng-model="filters[index]" value="1">Yes
 							</label>
 							<label class="btn btn-danger">
-								<input name="search_{{column.code}}" type="radio" autocomplete="off" value="0" ng-click="update()">No
+								<input name="search_{{column.code}}" type="radio" ng-model="filters[index]" value="0">No
 							</label>
 						</div>
 					</td>
 					<td ng-if="column.type=='date'">
 						<div class="input-group">
-							<input id="datePicker_{{column.code}}" name="daterange" class="form-control"
-								type="text" value="01/01/2015 1:30 PM - 01/01/2015 2:00 PM" />
+							<input name="daterange" data-index="{{index}}" class="form-control" type="text"/>
 							<span class="input-group-addon">
 								<span class="glyphicon glyphicon-calendar"></span>
 							</span>
@@ -171,28 +181,29 @@
 
 		<table class="table table-striped table-condensed">
 			<thead><tr>
-				<th ng-repeat="column in columns" 
-					ng-click="$parent.orderColumn=($parent.orderColumn==column.code)? '-'+column.code : column.code"
+				<th ng-repeat="(index,column) in columns" 
+					ng-click="$parent.orderIndex=($parent.orderIndex===index)? '-'+index : index"
 					class="btn-default" style="cursor:pointer">
 
 					{{column.name}}
 					<span
-						class="glyphicon {{($parent.orderColumn==column.code)? 'glyphicon-sort-by-attributes' : 'glyphicon-sort-by-attributes-alt'}}"
-						style="opacity:{{$parent.orderColumn==column.code||$parent.orderColumn==('-'+column.code)? '1.0' : '0.0'}}"
+						class="pull-right glyphicon {{($parent.orderIndex===index)? 'glyphicon-sort-by-attributes' : 'glyphicon-sort-by-attributes-alt'}}"
+						style="opacity:{{($parent.orderIndex===index||$parent.orderIndex===('-'+index))? '1.0' : '0.0'}}"
 						aria-hidden="true">
 					</span>
 				</th>
 			</tr></thead>
 
-			<tr ng-repeat="entry in logs | logFilter | orderBy:orderColumn">
-				<td ng-repeat="(index,column) in columns">
-					<div ng-if="column.type=='float'">
+			<tr ng-repeat="entry in logs | logFilter | orderBy:orderIndex">
+				<td ng-repeat="(index,column) in columns" ng-switch="column.type">
+
+					<div ng-switch-when="float">
 						{{entry[index] | number:2}}
 					</div>
-					<div ng-if="column.type=='bool'">
+					<div ng-switch-when="bool">
 						<span class="glyphicon {{entry[index]? 'glyphicon-ok' : 'glyphicon-remove'}}"></span>
 					</div>
-					<div ng-if="column.type!='float' && column.type!='bool'">
+					<div ng-switch-default>
 						{{entry[index]}}
 					</div>
 				</td>
