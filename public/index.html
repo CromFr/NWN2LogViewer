@@ -34,7 +34,7 @@
 			if(getParameterByName("logs")){
 				$http.get(getParameterByName("logs").replace('.','/')+'/data').success(function(data){
 					$scope.columns = data.columns;
-					$scope.orderIndex = '+0';
+					$scope.orderIndex = '';
 					$scope.logs = data.data;
 
 					$scope.filters = [];
@@ -187,7 +187,7 @@
 					{{column.name}}
 					<span
 						class="pull-right glyphicon {{($parent.orderIndex===index)? 'glyphicon-sort-by-attributes' : 'glyphicon-sort-by-attributes-alt'}}"
-						style="opacity:{{($parent.orderIndex===index||$parent.orderIndex===('-'+index))? '1.0' : '0.0'}}"
+						style="visibility:{{($parent.orderIndex===index||$parent.orderIndex===('-'+index))? 'visible' : 'hidden'}}"
 						aria-hidden="true">
 					</span>
 				</th>
