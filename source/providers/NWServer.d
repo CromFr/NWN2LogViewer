@@ -8,7 +8,7 @@ import std.algorithm;
 import std.encoding;
 import std.utf;
 import std.datetime;
-import std.exception : assertNotThrown;
+import std.exception;
 
 import dataprovider;
 
@@ -93,7 +93,6 @@ class General : DataProvider{
 	private string file;
 	///
 	this(Json config){
-		import std.exception : assertNotThrown;
 		assertNotThrown(config.file.to!string, __MODULE__~" need a file path");
 		file = config.file.to!string;
 
@@ -144,7 +143,7 @@ class General : DataProvider{
 			}
 			else{
 				//10 sec per '.' char
-				date = prevDate;//+dur!"seconds"(1*(line.length-stripped.length));
+				date = prevDate;
 			}
 
 			//year passing

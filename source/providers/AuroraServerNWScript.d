@@ -7,6 +7,7 @@ import std.conv;
 import std.algorithm;
 import std.encoding;
 import std.utf;
+import std.exception;
 
 import dataprovider;
 
@@ -15,11 +16,12 @@ import dataprovider;
 //	file: Path to AuroraServerNWScript log file
 //
 
+///
 class Benchmark : DataProvider{
 
 	private string file;
+	///
 	this(Json config){
-		import std.exception;
 		assertNotThrown(config.file.to!string, __MODULE__~" need a file path");
 		file = config.file.to!string;
 
@@ -69,12 +71,12 @@ class Benchmark : DataProvider{
 	}
 }
 
-
+///
 class Errors : DataProvider{
 
 	private string file;
+	///
 	this(Json config){
-		import std.exception;
 		assertNotThrown(config.file.to!string, __MODULE__~" need a file path");
 		file = config.file.to!string;
 		
