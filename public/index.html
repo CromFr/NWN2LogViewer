@@ -3,15 +3,15 @@
 <head>
 	<meta charset="utf-8">
 	<title>NWN Log viewer</title>
-	<link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css"/>
-	<link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.css" />
+	<link rel="stylesheet" href="//cdn.jsdelivr.net/bootstrap/3.3.5/css/bootstrap.min.css"/>
+	<link rel="stylesheet" href="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.css"/>
 
-	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.5/angular.min.js"></script>
+	<script src="//cdn.jsdelivr.net/angularjs/1.4.2/angular.min.js"></script>
 	<script src="//cdn.jsdelivr.net/jquery/1/jquery.min.js"></script>
-	<script src="lib/bootstrap/dist/js/bootstrap.min.js"></script>
+	<script src="//cdn.jsdelivr.net/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 
-	<script type="text/javascript" src="//cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
-	<script type="text/javascript" src="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.js"></script>
+	<script src="//cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+	<script src="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.js"></script>
 
 	<script type="text/javascript">
 		function getParameterByName(name) {
@@ -59,7 +59,6 @@
 								'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
 							}
 						}, function(start, end, label) {
-							// console.log('New date range selected: ' + start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD') + ' (predefined range: ' + label + ')');
 							var index = this.element[0].attributes['data-index'].value;
 							$scope.filters[index] = {
 								from: start.format('YYYY-MM-DDTHH:mm:ss'),
