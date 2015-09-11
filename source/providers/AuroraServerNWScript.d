@@ -34,19 +34,21 @@ class Benchmark : DataProvider{
 			Column("Avg run time (ms)","avgRunTime", ColumnType.FLOAT),
 			Column("Calls","calls", ColumnType.INT),
 			Column("Total run time (ms)","totalRunTime", ColumnType.FLOAT),
+			Column("Date","date", ColumnType.DATE),
 		];
 	}
 
 	override Json getData(Json settings=null) {
+		//[2015-09-02 19:56:49] module_onpcload - (JIT) (8 calls, 25 script situations, 0 bytes VA space usage, 783ms runtime).
 		enum rgxScript = ctRegex!r"\[(.+?)\] (.+?) - \((.+?)\) \(([0-9]+) calls, [0-9]+ script situations, [0-9]+ bytes VA space usage, ([0-9]+)ms runtime\)\.";
 
 		struct Entry{
 			string name;
 			string type;
+			float avgRunTime;
 			int calls;
 			int totalRunTime;
-
-			float avgRunTime;
+			DateTime date;
 		}
 
 		Entry[string] data;
@@ -64,7 +66,7 @@ class Benchmark : DataProvider{
 			.each!((m){
 				auto calls = m[4].to!uint;
 				auto rtime = m[5].to!uint;
-				data[m[2]] = Entry(m[2],m[3],calls,rtime,rtime/(calls*1.0));
+				data[m[2]] = Entry(m[2],m[3],rtime/(calls*1.0),calls,rtime,m[1].parseDateTime!"YYYY:MM:DD hh:mm:ss");
 			});
 
 		return serializeDataToJson(data.values);
