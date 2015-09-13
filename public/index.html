@@ -40,7 +40,7 @@
 					$scope.filters = [];
 
 					setTimeout(function(){
-						 $('input[name="daterange"]').daterangepicker({
+						 $('[name="daterange"]').daterangepicker({
 						 	locale: {
 						      format: 'YYYY-MM-DDTHH:mm:ss',
 						      firstDay: 1
@@ -92,7 +92,7 @@
 							}
 							else if(colType=="text"){
 								if($scope.filters[colIndex]){
-									if(cellValue.toLowerCase().search($scope.filters[colIndex].toLowerCase())==-1)
+									if(cellValue.toLowerCase().indexOf($scope.filters[colIndex].toLowerCase())==-1)
 										return false;
 								}
 							}
@@ -153,27 +153,45 @@
 					<td><label class="control-label">{{column.name}}</label></td>
 
 					<td ng-if="column.type=='text'">
-						<input type="text" class="form-control" placeholder="Containing..." ng-model="filters[index]"/>
+						<div class="input-group" style="width: 100%">
+							<input type="text" class="form-control" placeholder="Containing..." ng-model="filters[index]" style="width: 100%" />
+							<span class="input-group-btn">
+								<button class="btn btn-default" type="button" ng-click="filters[index]=null"><span class="glyphicon glyphicon-remove"></span></button>
+							</span>
+						</div>
 					</td>
 					<td ng-if="column.type=='int' || column.type=='float'">
-						<input type="number" class="form-control" placeholder="From" ng-model="filters[index].from"/>
-						<input type="number" class="form-control" placeholder="To" ng-model="filters[index].to"/>
+						<div class="input-group" style="width: 100%">
+							<input type="number" class="form-control" placeholder="From" ng-model="filters[index].from" style="width: 49%"/>
+							<input type="number" class="form-control" placeholder="To" ng-model="filters[index].to" style="width: 49%"/>
+							<span class="input-group-btn">
+								<button class="btn btn-default" type="button" ng-click="filters[index]=null"><span class="glyphicon glyphicon-remove"></span></button>
+							</span>
+						</div>
 					</td>
 					<td ng-if="column.type=='bool'">
 						<div class="btn-group">
-							<label class="btn btn-default active">
-								<input name="search_{{column.code}}" type="radio" ng-model="filters[index]" value="" checked>Any
-							</label>
 							<label class="btn btn-success">
 								<input name="search_{{column.code}}" type="radio" ng-model="filters[index]" value="1">Yes
 							</label>
 							<label class="btn btn-danger">
 								<input name="search_{{column.code}}" type="radio" ng-model="filters[index]" value="0">No
 							</label>
+							<label class="btn btn-default active">
+								<input name="search_{{column.code}}" type="radio" ng-model="filters[index]" value="" checked>Any
+							</label>
 						</div>
 					</td>
 					<td ng-if="column.type=='date'">
-						<input name="daterange" data-index="{{index}}" class="form-control" type="text" style="width: 100%" readonly/>
+						<div class="input-group" style="width: 100%">
+							<span name="daterange" data-index="{{index}}" class="form-control">
+								{{$parent.filters[index]? $parent.filters[index].from+" to "+$parent.filters[index].to : ""}}
+							</span>
+							<!-- <input name="daterange" data-index="{{index}}" class="form-control" type="text" readonly/> -->
+							<span class="input-group-btn">
+								<button class="btn btn-default" type="button" ng-click="filters[index]=null"><span class="glyphicon glyphicon-remove"></span></button>
+							</span>
+						</div>
 					</td>
 				</tr>
 			</table>
