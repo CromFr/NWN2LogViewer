@@ -84,21 +84,28 @@
 							var colType = $scope.columns[colIndex].type;
 							var cellValue = line[colIndex];
 
-							if(colType=="int" || colType=="float" || colType=="date"){
+							if(colType=="int" || colType=="float"){
 								if($scope.filters[colIndex]){
 									if($scope.filters[colIndex].from && cellValue<$scope.filters[colIndex].from) return false;
 									if($scope.filters[colIndex].to && cellValue>$scope.filters[colIndex].to)     return false;
 								}
-							}
-							else if(colType=="bool"){
-								if($scope.filters[colIndex] && cellValue!=$scope.filters[colIndex])
-									return false;
 							}
 							else if(colType=="text"){
 								if($scope.filters[colIndex]){
 									if(cellValue.toLowerCase().search($scope.filters[colIndex].toLowerCase())==-1)
 										return false;
 								}
+							}
+							else if(colType=="date"){
+								if($scope.filters[colIndex]){
+									if($scope.filters[colIndex].from.localeCompare(cellValue) == 1)return false;
+									if($scope.filters[colIndex].to.localeCompare(cellValue) == -1)return false;
+								}
+								
+							}
+							else if(colType=="bool"){
+								if($scope.filters[colIndex] && cellValue!=$scope.filters[colIndex])
+									return false;
 							}
 						}
 						return true;
@@ -166,12 +173,7 @@
 						</div>
 					</td>
 					<td ng-if="column.type=='date'">
-						<div class="input-group">
-							<input name="daterange" data-index="{{index}}" class="form-control" type="text"/>
-							<span class="input-group-addon">
-								<span class="glyphicon glyphicon-calendar"></span>
-							</span>
-						</div>
+						<input name="daterange" data-index="{{index}}" class="form-control" type="text" style="width: 100%" readonly/>
 					</td>
 				</tr>
 			</table>

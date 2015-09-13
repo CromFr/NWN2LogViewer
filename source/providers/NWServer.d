@@ -128,7 +128,7 @@ class General : DataProvider{
 
 		auto lines = dataString.splitLines;
 
-		DateTime prevDate = DateTime(0,1,1);
+		DateTime prevDate = DateTime(Clock.currTime.year,1,1);
 		foreach(line ; lines){
 			auto stripped = line.stripLeft('.');
 			DateTime date;
@@ -149,6 +149,9 @@ class General : DataProvider{
 			//year passing
 			if(prevDate>date){
 				date.year = date.year+1;
+				foreach(ref entry ; data){
+					entry.date.year = entry.date.year-1;
+				}
 			}
 
 			if(stripped.length>0 && stripped.matchFirst(rgxBlackList).empty)
