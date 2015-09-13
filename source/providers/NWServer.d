@@ -60,7 +60,7 @@ class Lcda : DataProvider{
 		//KINDER|ITEMMAJ|TRANSFERT|CONNECTION|DISCONNECTION|PCDEATH
 
 		struct Entry{
-			string date;
+			DateTime date;
 			string type;
 			string message;
 		}
@@ -76,11 +76,32 @@ class Lcda : DataProvider{
 			transcode(cast(Windows1252String)(file.read), dataString);
 		}
 
-		dataString
-			.matchAll(ctRegex!(timestamp~r"\s*\[([A-Z_]+)\]\s*(.*)"))
-			.each!((m){
-				data ~= Entry(m[1],m[2],m[3]);
-			});
+		DateTime prevDate = DateTime(Clock.currTime.year,1,1);
+		foreach(line ; dataString.splitLines){
+			auto stripped = line.stripLeft('.');
+			DateTime date;
+
+			auto m = stripped.matchFirst(ctRegex!(timestamp~r"\s*\[([A-Z_]+)\]\s*(.*)"));
+			if(!m.empty){
+				date = shittyTimestampToDateTime(m[1]);
+				date.year = prevDate.year;
+
+				//year passing
+				if(prevDate>date){
+					date.year = date.year+1;
+					foreach(ref entry ; data){
+						entry.date.year = entry.date.year-1;
+					}
+				}
+
+				data ~= Entry(
+					date,
+					m[2],
+					m[3]);
+				prevDate = date;
+			}
+			
+		}
 
 		return serializeDataToJson(data);
 	}
@@ -126,10 +147,8 @@ class General : DataProvider{
 			transcode(cast(Windows1252String)(file.read), dataString);
 		}
 
-		auto lines = dataString.splitLines;
-
 		DateTime prevDate = DateTime(Clock.currTime.year,1,1);
-		foreach(line ; lines){
+		foreach(line ; dataString.splitLines){
 			auto stripped = line.stripLeft('.');
 			DateTime date;
 
