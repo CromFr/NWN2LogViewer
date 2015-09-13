@@ -66,7 +66,13 @@ class Benchmark : DataProvider{
 			.each!((m){
 				auto calls = m[4].to!uint;
 				auto rtime = m[5].to!uint;
-				data[m[2]] = Entry(m[2],m[3],rtime/(calls*1.0),calls,rtime,m[1].parseDateTime!"YYYY:MM:DD hh:mm:ss");
+				data[m[2]] = Entry(
+					m[2],
+					m[3],
+					rtime/(calls*1.0),
+					calls,
+					rtime,
+					m[1].parseDateTime!("YYYY:MM:DD hh:mm:ss",+2));
 			});
 
 		return serializeDataToJson(data.values);
@@ -118,7 +124,7 @@ class Errors : DataProvider{
 			.matchAll(rgxScript)
 			.each!((m){
 				data ~= Entry(
-					m[1].parseDateTime!"YYYY:MM:DD hh:mm:ss",
+					m[1].parseDateTime!("YYYY:MM:DD hh:mm:ss",+2),
 					m[2],
 					m[3],
 					m[4]);

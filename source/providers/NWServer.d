@@ -34,7 +34,7 @@ DateTime shittyTimestampToDateTime(in string ts){
 		case "Dec": monthString="12"; break;
 		default:    enforce(0, "Invalid month string: "~ts[4..7]);
 	}
-	return parseDateTime!"MM DD hh:mm:ss"(monthString~ts[7..$]);
+	return (monthString~ts[7..$]).parseDateTime!"MM DD hh:mm:ss";
 }
 
 ///

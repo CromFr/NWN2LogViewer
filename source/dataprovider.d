@@ -60,8 +60,9 @@ abstract class DataProvider : DataProviderIface{
 
 
 /// ex format: YYYY-MM-DD hh:mm:ss
-DateTime parseDateTime(string format)(in string data){
+DateTime parseDateTime(string format, int hourAdjust=0)(in string data){
 	import std.conv : to;
+	import std.datetime : dur;
 	assert(format.length == data.length);
 
 	string year,month,day,hour,minute,second;
@@ -84,5 +85,5 @@ DateTime parseDateTime(string format)(in string data){
 		hour is null?   0 : hour.to!int,
 		minute is null? 0 : minute.to!int,
 		second is null? 0 : second.to!int
-		);
+		) + dur!"hours"(hourAdjust);
 }
